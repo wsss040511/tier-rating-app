@@ -34,7 +34,6 @@
       padding: 10px 20px;
       margin-right: 10px;
     }
-    #upload-form { margin-top: 40px; }
     #gallery img { max-width: 300px; margin: 10px; border: 1px solid #ccc; }
   </style>
 </head>
@@ -64,12 +63,6 @@
 
   <button id="capture">导出为图片</button>
   <button id="clear">清除全部</button>
-
-  <form id="upload-form" method="POST" action="/upload" enctype="multipart/form-data">
-    <h2>上传你的评级图片</h2>
-    <input type="file" name="image" accept="image/*" required>
-    <button type="submit">上传</button>
-  </form>
 
   <h2>公共画廊</h2>
   <div id="gallery">
@@ -142,6 +135,28 @@
         link.download = '评级结果.png';
         link.href = canvas.toDataURL();
         link.click();
+
+        const confirmUpload = confirm('是否同步上传图片到本网站的公共画廊？');
+        if (confirmUpload) {
+          canvas.toBlob(blob => {
+            const formData = new FormData();
+            formData.append('image', blob, 'capture.png');
+
+            fetch('/upload', {
+              method: 'POST',
+              body: formData
+            })
+            .then(response => {
+              if (response.ok) {
+                alert('上传成功！');
+                location.reload();
+              } else {
+                alert('上传失败');
+              }
+            })
+            .catch(() => alert('上传出错'));
+          });
+        }
       });
     });
 
@@ -155,6 +170,5 @@
   </script>
 </body>
 </html>
-
 
 

@@ -190,7 +190,8 @@
     });
 
     document.getElementById('capture').addEventListener('click', () => {
-      html2canvas(document.body).then(canvas => {
+      const target = document.getElementById('tiers');
+      html2canvas(target).then(canvas => {
         const link = document.createElement('a');
         link.download = '评级结果.png';
         link.href = canvas.toDataURL();
@@ -233,3 +234,4 @@
   </script>
 </body>
 </html>
+

@@ -6,7 +6,6 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-# 确保上传文件夹存在
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -15,8 +14,10 @@ def allowed_file(filename):
 
 @app.route('/')
 def home():
-    # 获取已上传图片列表
-    images = os.listdir(app.config['UPLOAD_FOLDER'])
+    try:
+        images = os.listdir(app.config['UPLOAD_FOLDER'])
+    except Exception:
+        images = []
     return render_template('index.html', images=images)
 
 @app.route('/upload', methods=['POST'])

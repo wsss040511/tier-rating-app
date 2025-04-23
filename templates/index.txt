@@ -34,6 +34,8 @@
       padding: 10px 20px;
       margin-right: 10px;
     }
+    #upload-form { margin-top: 40px; }
+    #gallery img { max-width: 300px; margin: 10px; border: 1px solid #ccc; }
   </style>
 </head>
 <body>
@@ -63,13 +65,26 @@
   <button id="capture">导出为图片</button>
   <button id="clear">清除全部</button>
 
+  <form id="upload-form" method="POST" action="/upload" enctype="multipart/form-data">
+    <h2>上传你的评级图片</h2>
+    <input type="file" name="image" accept="image/*" required>
+    <button type="submit">上传</button>
+  </form>
+
+  <h2>公共画廊</h2>
+  <div id="gallery">
+    {% for img in images %}
+      <img src="{{ url_for('static', filename='uploads/' + img) }}">
+    {% endfor %}
+  </div>
+
   <script>
     function enableDrag() {
       document.querySelectorAll('.entry').forEach(entry => {
         entry.addEventListener('dragstart', (e) => {
           e.dataTransfer.setData('text/plain', e.target.textContent);
           e.dataTransfer.effectAllowed = 'move';
-          window.draggedText = e.target.textContent;  // 暂存拖动内容
+          window.draggedText = e.target.textContent;
         });
       });
     }
@@ -89,7 +104,7 @@
       tier.addEventListener('drop', e => {
         e.preventDefault();
         const text = e.dataTransfer.getData('text/plain').trim();
-        removeEntryByText(text); // 每次移动先移除其他栏中的相同词条
+        removeEntryByText(text);
 
         const div = document.createElement('div');
         div.className = 'entry';
@@ -140,5 +155,6 @@
   </script>
 </body>
 </html>
+
 
 

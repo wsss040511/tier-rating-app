@@ -91,6 +91,14 @@
   <script>
     const defaultTiers = ['SSS', 'SS', 'S', 'A', 'B', 'C', 'D'];
 
+    function removeDuplicateFromAllTiers(text) {
+      document.querySelectorAll('.tier .entry').forEach(entry => {
+        if (entry.textContent.trim() === text.trim()) {
+          entry.remove();
+        }
+      });
+    }
+
     function renderTiers() {
       const tiersContainer = document.getElementById('tiers');
       tiersContainer.innerHTML = '';
@@ -115,6 +123,7 @@
         tier.addEventListener('drop', e => {
           e.preventDefault();
           const text = e.dataTransfer.getData('text/plain');
+          removeDuplicateFromAllTiers(text);
           const div = document.createElement('div');
           div.className = 'entry';
           div.draggable = true;
@@ -148,6 +157,7 @@
       tier.addEventListener('drop', e => {
         e.preventDefault();
         const text = e.dataTransfer.getData('text/plain');
+        removeDuplicateFromAllTiers(text);
         const div = document.createElement('div');
         div.className = 'entry';
         div.draggable = true;
@@ -234,4 +244,3 @@
   </script>
 </body>
 </html>
-

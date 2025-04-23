@@ -6,23 +6,36 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  background-image: url('/static/background.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-  color: #333;
-}
-
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-image: url('/static/background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      color: #333;
+    }
     h2 { margin-top: 40px; }
     .tier {
       border: 1px solid #aaa;
       padding: 10px;
       min-height: 60px;
-      background-color: #f0f0f0;
+      background-color: rgba(255,255,255,0.8);
       margin-bottom: 10px;
+      position: relative;
+    }
+    .tier-header {
+      font-weight: bold;
+      cursor: text;
+      display: inline-block;
+    }
+    .remove-tier {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      color: red;
+      cursor: pointer;
+      font-weight: bold;
     }
     .entry {
       background: #cce5ff;
@@ -38,8 +51,9 @@
       border: 2px dashed #aaa;
       padding: 10px;
       margin-top: 20px;
+      background-color: rgba(255,255,255,0.7);
     }
-    #capture, #clear {
+    #capture, #clear, #add-tier {
       margin-top: 20px;
       padding: 10px 20px;
       margin-right: 10px;
@@ -61,15 +75,8 @@
   </div>
 
   <h2>评级栏</h2>
-  <div id="tiers">
-    <div class="tier" data-label="SSS"><strong>SSS</strong></div>
-    <div class="tier" data-label="SS"><strong>SS</strong></div>
-    <div class="tier" data-label="S"><strong>S</strong></div>
-    <div class="tier" data-label="A"><strong>A</strong></div>
-    <div class="tier" data-label="B"><strong>B</strong></div>
-    <div class="tier" data-label="C"><strong>C</strong></div>
-    <div class="tier" data-label="D"><strong>D</strong></div>
-  </div>
+  <div id="tiers"></div>
+  <button id="add-tier">+ 添加等级栏</button>
 
   <button id="capture">导出为图片</button>
   <button id="clear">清除全部</button>
@@ -82,33 +89,65 @@
   </div>
 
   <script>
-    function enableDrag() {
-      document.querySelectorAll('.entry').forEach(entry => {
-        entry.addEventListener('dragstart', (e) => {
-          e.dataTransfer.setData('text/plain', e.target.textContent);
-          e.dataTransfer.effectAllowed = 'move';
-          window.draggedText = e.target.textContent;
+    const defaultTiers = ['SSS', 'SS', 'S', 'A', 'B', 'C', 'D'];
+
+    function renderTiers() {
+      const tiersContainer = document.getElementById('tiers');
+      tiersContainer.innerHTML = '';
+      defaultTiers.forEach(label => {
+        const tier = document.createElement('div');
+        tier.className = 'tier';
+        tier.dataset.label = label;
+
+        const title = document.createElement('div');
+        title.className = 'tier-header';
+        title.contentEditable = true;
+        title.textContent = label;
+        tier.appendChild(title);
+
+        const remove = document.createElement('span');
+        remove.className = 'remove-tier';
+        remove.textContent = '×';
+        remove.onclick = () => tier.remove();
+        tier.appendChild(remove);
+
+        tier.addEventListener('dragover', e => e.preventDefault());
+        tier.addEventListener('drop', e => {
+          e.preventDefault();
+          const text = e.dataTransfer.getData('text/plain');
+          const div = document.createElement('div');
+          div.className = 'entry';
+          div.draggable = true;
+          div.textContent = text;
+          tier.appendChild(div);
+          enableDrag();
         });
+
+        tiersContainer.appendChild(tier);
       });
     }
 
-    enableDrag();
+    document.getElementById('add-tier').addEventListener('click', () => {
+      const tiersContainer = document.getElementById('tiers');
+      const tier = document.createElement('div');
+      tier.className = 'tier';
 
-    function removeEntryByText(text) {
-      document.querySelectorAll('.tier .entry').forEach(entry => {
-        if (entry.textContent.trim() === text.trim()) {
-          entry.remove();
-        }
-      });
-    }
+      const title = document.createElement('div');
+      title.className = 'tier-header';
+      title.contentEditable = true;
+      title.textContent = '新等级';
+      tier.appendChild(title);
 
-    document.querySelectorAll('.tier').forEach(tier => {
+      const remove = document.createElement('span');
+      remove.className = 'remove-tier';
+      remove.textContent = '×';
+      remove.onclick = () => tier.remove();
+      tier.appendChild(remove);
+
       tier.addEventListener('dragover', e => e.preventDefault());
       tier.addEventListener('drop', e => {
         e.preventDefault();
-        const text = e.dataTransfer.getData('text/plain').trim();
-        removeEntryByText(text);
-
+        const text = e.dataTransfer.getData('text/plain');
         const div = document.createElement('div');
         div.className = 'entry';
         div.draggable = true;
@@ -116,7 +155,18 @@
         tier.appendChild(div);
         enableDrag();
       });
+
+      tiersContainer.appendChild(tier);
     });
+
+    function enableDrag() {
+      document.querySelectorAll('.entry').forEach(entry => {
+        entry.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', e.target.textContent);
+          e.dataTransfer.effectAllowed = 'move';
+        });
+      });
+    }
 
     document.getElementById('entry-form').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -172,13 +222,14 @@
 
     document.getElementById('clear').addEventListener('click', () => {
       document.querySelectorAll('.tier').forEach(tier => {
-        while (tier.children.length > 1) {
+        while (tier.children.length > 2) {
           tier.removeChild(tier.lastChild);
         }
       });
     });
+
+    renderTiers();
+    enableDrag();
   </script>
 </body>
 </html>
-
-

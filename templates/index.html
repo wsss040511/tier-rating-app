@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>评级网站</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { margin-top: 40px; }
+    .tier {
+      border: 1px solid #aaa;
+      padding: 10px;
+      min-height: 60px;
+      background-color: #f0f0f0;
+      margin-bottom: 10px;
+    }
+    .entry {
+      background: #cce5ff;
+      display: inline-block;
+      padding: 5px 10px;
+      margin: 5px 5px 0 0;
+      cursor: grab;
+      border: 1px solid #007bff;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+    #entry-pool {
+      border: 2px dashed #aaa;
+      padding: 10px;
+      margin-top: 20px;
+    }
+    #capture, #clear {
+      margin-top: 20px;
+      padding: 10px 20px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>评级网站</h1>
+
+  <form id="entry-form">
+    <input type="text" id="new-entry" placeholder="添加词条">
+    <button type="submit">添加</button>
+  </form>
+
+  <div id="entry-pool">
+    <div class="entry" draggable="true">果宝特工</div>
+    <div class="entry" draggable="true">大耳朵图图</div>
+  </div>
+
+  <h2>评级栏</h2>
+  <div id="tiers">
+    <div class="tier" data-label="SSS"><strong>SSS</strong></div>
+    <div class="tier" data-label="SS"><strong>SS</strong></div>
+    <div class="tier" data-label="S"><strong>S</strong></div>
+    <div class="tier" data-label="A"><strong>A</strong></div>
+    <div class="tier" data-label="B"><strong>B</strong></div>
+    <div class="tier" data-label="C"><strong>C</strong></div>
+    <div class="tier" data-label="D"><strong>D</strong></div>
+  </div>
+
+  <button id="capture">导出为图片</button>
+  <button id="clear">清除全部</button>
+
+  <script>
+    function enableDrag() {
+      document.querySelectorAll('.entry').forEach(entry => {
+        entry.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', e.target.textContent);
+          e.dataTransfer.effectAllowed = 'move';
+          window.draggedText = e.target.textContent;  // 暂存拖动内容
+        });
+      });
+    }
+
+    enableDrag();
+
+    function removeEntryByText(text) {
+      document.querySelectorAll('.tier .entry').forEach(entry => {
+        if (entry.textContent.trim() === text.trim()) {
+          entry.remove();
+        }
+      });
+    }
+
+    document.querySelectorAll('.tier').forEach(tier => {
+      tier.addEventListener('dragover', e => e.preventDefault());
+      tier.addEventListener('drop', e => {
+        e.preventDefault();
+        const text = e.dataTransfer.getData('text/plain').trim();
+        removeEntryByText(text); // 每次移动先移除其他栏中的相同词条
+
+        const div = document.createElement('div');
+        div.className = 'entry';
+        div.draggable = true;
+        div.textContent = text;
+        tier.appendChild(div);
+        enableDrag();
+      });
+    });
+
+    document.getElementById('entry-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = document.getElementById('new-entry').value.trim();
+      if (!text) return;
+
+      const exists = Array.from(document.querySelectorAll('#entry-pool .entry'))
+        .some(entry => entry.textContent.trim() === text);
+      if (exists) {
+        alert('该词条已存在于选择区');
+        return;
+      }
+
+      const div = document.createElement('div');
+      div.className = 'entry';
+      div.draggable = true;
+      div.textContent = text;
+      document.getElementById('entry-pool').appendChild(div);
+      document.getElementById('new-entry').value = '';
+      enableDrag();
+    });
+
+    document.getElementById('capture').addEventListener('click', () => {
+      html2canvas(document.body).then(canvas => {
+        const link = document.createElement('a');
+        link.download = '评级结果.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    });
+
+    document.getElementById('clear').addEventListener('click', () => {
+      document.querySelectorAll('.tier').forEach(tier => {
+        while (tier.children.length > 1) {
+          tier.removeChild(tier.lastChild);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
+
